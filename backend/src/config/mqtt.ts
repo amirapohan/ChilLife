@@ -68,7 +68,6 @@ client.on("message", async (topic, message) => {
           soil_n: payload.soil_n,
           soil_p: payload.soil_p,
           soil_k: payload.soil_k,
-          temperature: payload.temperature,
         },
       ]);
 
