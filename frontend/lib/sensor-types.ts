@@ -1,12 +1,14 @@
 export interface SensorReading {
   id?: number;
+  adc: number;
+  kelembapan: number;
+  kondisi: string;
+  pompa: string;
+  created_at: string;
+}
 
-  soil_moisture: number;
-  soil_ph: number;
-
-  soil_n: number;
-  soil_p: number;
-  soil_k: number;
-
-  timestamp?: string;
+export interface SensorApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
 }

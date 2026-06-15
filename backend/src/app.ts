@@ -6,6 +6,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/moisture", sensorRoutes);
 app.use("/api/sensors", sensorRoutes);
 
 export default app;

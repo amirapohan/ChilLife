@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
 import { supabase } from "../config/supabase";
+import { SoilMoistureReading } from "../types/sensor";
+
+const selectFields = "adc, kelembapan, kondisi, pompa, created_at";
+
+const formatLatestReading = (
+  data: SoilMoistureReading[] | null
+) => data?.[0] ?? null;
 
 export const getLatestSensorData = async (
   req: Request,
@@ -7,9 +14,9 @@ export const getLatestSensorData = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from("sensor_readings")
-      .select("*")
-      .order("timestamp", { ascending: false })
+      .from("soil_moisture_readings")
+      .select(selectFields)
+      .order("created_at", { ascending: false })
       .limit(1);
 
     if (error) {
@@ -21,7 +28,7 @@ export const getLatestSensorData = async (
 
     return res.status(200).json({
       success: true,
-      data,
+      data: formatLatestReading(data),
     });
   } catch (error) {
     return res.status(500).json({
@@ -37,9 +44,9 @@ export const getSensorHistory = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from("sensor_readings")
-      .select("*")
-      .order("timestamp", { ascending: false })
+      .from("soil_moisture_readings")
+      .select(selectFields)
+      .order("created_at", { ascending: false })
       .limit(20);
 
     if (error) {
@@ -51,7 +58,7 @@ export const getSensorHistory = async (
 
     return res.status(200).json({
       success: true,
-      data,
+      data: data ?? [],
     });
   } catch (error) {
     return res.status(500).json({

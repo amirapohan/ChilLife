@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { getLatestSensorData } from "../lib/sensor-api";
+import {
+  getLatestSensorData,
+  getSensorHistory,
+} from "../lib/sensor-api";
 import { SensorReading } from "../lib/sensor-types";
 
 import { SensorDashboard } from "../components/SensorDashboard";
@@ -10,6 +13,9 @@ import { SensorDashboard } from "../components/SensorDashboard";
 export default function HomePage() {
   const [latestReading, setLatestReading] =
     useState<SensorReading | null>(null);
+
+  const [historyReadings, setHistoryReadings] =
+    useState<SensorReading[]>([]);
 
   const [isLoading, setIsLoading] =
     useState(true);
@@ -22,11 +28,16 @@ export default function HomePage() {
     setError(null);
 
     try {
-      const latest =
-        await getLatestSensorData();
+      const [latest, history] = await Promise.all([
+        getLatestSensorData(),
+        getSensorHistory(),
+      ]);
 
       setLatestReading(latest);
+      setHistoryReadings(history);
     } catch (loadError) {
+      setLatestReading(null);
+      setHistoryReadings([]);
       setError(
         loadError instanceof Error
           ? loadError.message
@@ -42,7 +53,7 @@ export default function HomePage() {
 
     const interval = setInterval(() => {
       void loadData();
-    }, 5000);
+    },500);
 
     return () => clearInterval(interval);
   }, [loadData]);
@@ -50,6 +61,7 @@ export default function HomePage() {
   return (
     <SensorDashboard
       latestReading={latestReading}
+      historyReadings={historyReadings}
       isLoading={isLoading}
       error={error}
       onRefresh={() => {

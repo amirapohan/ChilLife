@@ -3,6 +3,7 @@ import { SensorCard } from "./SensorCard";
 
 interface Props {
   latestReading: SensorReading | null;
+  historyReadings: SensorReading[];
   isLoading: boolean;
   error: string | null;
   onRefresh: () => void;
@@ -10,96 +11,78 @@ interface Props {
 
 export function SensorDashboard({
   latestReading,
+  historyReadings,
   isLoading,
   error,
   onRefresh,
 }: Props) {
-  console.log("RAW TIMESTAMP:", latestReading?.timestamp);
-
   const hasReading = Boolean(latestReading);
+  const conditionState = getConditionState(latestReading?.kondisi);
+  const pumpState = getPumpState(latestReading?.pompa);
 
-  const lastUpdatedLabel = latestReading?.timestamp
-    ? formatTimestamp(latestReading.timestamp)
+  const lastUpdatedLabel = latestReading?.created_at
+    ? formatTimestamp(latestReading.created_at)
     : "Belum tersedia";
 
   const statusState = error
     ? {
         label: "Koneksi bermasalah",
-        tone:
-          "border-rose-200 bg-rose-50 text-rose-700",
+        tone: "border-rose-200 bg-rose-50 text-rose-700",
         dot: "bg-rose-500",
       }
     : isLoading && !hasReading
     ? {
         label: "Memuat data sensor",
-        tone:
-          "border-amber-200 bg-amber-50 text-amber-700",
+        tone: "border-amber-200 bg-amber-50 text-amber-700",
         dot: "bg-amber-500",
       }
     : isLoading
     ? {
         label: "Menyegarkan data",
-        tone:
-          "border-emerald-200 bg-emerald-50 text-emerald-700",
+        tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
         dot: "bg-emerald-500 animate-pulse",
       }
     : hasReading
     ? {
-        label: "Sensor aktif",
-        tone:
-          "border-emerald-200 bg-emerald-50 text-emerald-700",
+        label: "Sensor kelembapan aktif",
+        tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
         dot: "bg-emerald-500",
       }
     : {
         label: "Menunggu data",
-        tone:
-          "border-slate-200 bg-slate-50 text-slate-600",
+        tone: "border-slate-200 bg-slate-50 text-slate-600",
         dot: "bg-slate-400",
       };
 
-  const sensorCards = [
-    {
-      title: "Soil Moisture",
-      value: latestReading?.soil_moisture ?? "--",
-      unit: "%",
-      description: "Target ideal untuk irigasi otomatis.",
-      icon: <MoistureIcon />,
-    },
+  const futureSensorCards = [
     {
       title: "Soil pH",
-      value: latestReading?.soil_ph ?? "--",
-      description: "Menunjukkan kondisi asam-basa tanah.",
+      description: "Sensor belum tersedia.",
       icon: <PhIcon />,
     },
     {
       title: "Nitrogen",
-      value: latestReading?.soil_n ?? "--",
-      unit: "ppm",
-      description: "Nutrisi untuk pertumbuhan daun dan batang.",
+      description: "Sensor belum tersedia.",
       icon: <NutriIcon />,
     },
     {
       title: "Phosphorus",
-      value: latestReading?.soil_p ?? "--",
-      unit: "ppm",
-      description: "Membantu akar dan pembungaan tanaman.",
+      description: "Sensor belum tersedia.",
       icon: <NutriIcon />,
     },
     {
       title: "Potassium",
-      value: latestReading?.soil_k ?? "--",
-      unit: "ppm",
-      description: "Mendukung ketahanan dan kualitas tanaman.",
+      description: "Sensor belum tersedia.",
       icon: <NutriIcon />,
     },
   ];
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_38%),linear-gradient(180deg,#effdf5_0%,#f8fffb_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8 lg:py-10">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle,_rgba(110,231,183,0.22),_transparent_65%)] opacity-80" />
+    <main className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.18),transparent_38%),linear-gradient(180deg,#effdf5_0%,#f8fffb_100%)] px-4 py-6 text-slate-900 sm:px-6 lg:px-8 lg:py-10">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle,rgba(110,231,183,0.22),transparent_65%)] opacity-80" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="overflow-hidden rounded-[32px] border border-emerald-100 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-sm sm:p-8 lg:p-10">
+        <section className="overflow-hidden rounded-4xl border border-emerald-100 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-sm sm:p-8 lg:p-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-3xl space-y-4">
               <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
@@ -108,12 +91,12 @@ export function SensorDashboard({
 
               <div className="space-y-3">
                 <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
-                  ChiliLife Sensor Dashboard
+                  ChilLife Sensor Dashboard
                 </h1>
 
                 <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-                  Dashboard monitoring untuk menampilkan kondisi tanah berdasarkan
-                  pembacaan sensor IoT secara real-time
+                  Dashboard monitoring untuk sensor kelembapan tanah, status pompa,
+                  dan riwayat pembacaan terbaru dari ESP32.
                 </p>
               </div>
 
@@ -140,24 +123,28 @@ export function SensorDashboard({
                 <RefreshIcon />
               )}
 
-              {isLoading && !hasReading ? "Memuat..." : isLoading ? "Menyegarkan..." : "Refresh data"}
+              {isLoading && !hasReading
+                ? "Memuat..."
+                : isLoading
+                ? "Menyegarkan..."
+                : "Refresh data"}
             </button>
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-emerald-100 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-sm sm:p-8 lg:p-10">
+        <section className="rounded-4xl border border-emerald-100 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-sm sm:p-8 lg:p-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700/70">
-                Latest device
+                Latest moisture reading
               </p>
 
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 {isLoading && !hasReading
-                  ? "Loading sensor data"
+                  ? "Loading moisture data"
                   : hasReading
-                  ? "Sensor connected"
-                  : "Waiting for sensor data"}
+                  ? "Sensor kelembapan terhubung"
+                  : "Waiting for moisture data"}
               </h2>
             </div>
 
@@ -183,34 +170,196 @@ export function SensorDashboard({
             </div>
           )}
 
-          {!error && isLoading && !hasReading ? (
-            <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-              {sensorCards.map((card) => (
-                <SkeletonCard key={card.title} />
-              ))}
-            </div>
-          ) : !error && !hasReading ? (
-            <div className="mt-8 rounded-[28px] border border-dashed border-emerald-200 bg-emerald-50/70 p-8 text-center text-slate-600">
-              <p className="text-lg font-semibold text-slate-900">
-                Menunggu pembacaan sensor
-              </p>
+          {!error && (
+            <div className="mt-8 space-y-8">
+              <section className={`overflow-hidden rounded-[36px] border bg-linear-to-br p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-7 lg:p-8 ${conditionState.cardClass}`}>
+                <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch">
+                  <div className="space-y-6">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium ${statusState.tone}`}>
+                        <span className={`h-2.5 w-2.5 rounded-full ${statusState.dot}`} />
+                        {statusState.label}
+                      </span>
 
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6">
-                Data akan muncul otomatis setelah perangkat mengirimkan pembacaan terbaru.
-              </p>
-            </div>
-          ) : (
-            <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
-              {sensorCards.map((card) => (
-                <SensorCard
-                  key={card.title}
-                  title={card.title}
-                  value={card.value}
-                  unit={card.unit}
-                  description={card.description}
-                  icon={card.icon}
-                />
-              ))}
+                      <span className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm">
+                        <span className={`h-2.5 w-2.5 rounded-full ${conditionState.dot}`} />
+                        Kondisi {latestReading?.kondisi ?? "--"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500/80">
+                        Soil moisture
+                      </p>
+
+                      {latestReading ? (
+                        <div className="mt-4 flex items-end gap-3">
+                          <span className="text-6xl font-semibold tracking-tight text-slate-900 sm:text-7xl">
+                            {latestReading.kelembapan}
+                          </span>
+                          <span className="pb-3 text-xl font-medium text-slate-500">
+                            %
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex items-end gap-3">
+                          <div className="h-16 w-36 animate-pulse rounded-[20px] bg-white/70" />
+                          <span className="pb-3 text-xl font-medium text-slate-500">
+                            %
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
+                      {latestReading
+                        ? getConditionDescription(latestReading.kondisi)
+                        : "Menunggu pembacaan sensor kelembapan tanah dari ESP32."}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${conditionState.badgeClass}`}>
+                        <span className={`h-2 w-2 rounded-full ${conditionState.dot}`} />
+                        {latestReading?.kondisi ?? "Kondisi belum tersedia"}
+                      </span>
+
+                      <span className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${pumpState.badgeClass}`}>
+                        <span className={`h-2 w-2 rounded-full ${pumpState.dot}`} />
+                        Pompa {latestReading?.pompa ?? "--"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500/80">
+                          ADC value
+                        </p>
+                        <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
+                          {latestReading?.adc ?? "--"}
+                        </p>
+                      </div>
+
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${conditionState.iconBg}`}>
+                        <MoistureIcon />
+                      </div>
+                    </div>
+
+                    <dl className="mt-6 space-y-4 text-sm text-slate-600">
+                      <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                        <dt className="font-medium text-slate-500">Last update</dt>
+                        <dd className="font-semibold text-slate-900">{lastUpdatedLabel}</dd>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                        <dt className="font-medium text-slate-500">Condition tone</dt>
+                        <dd className="font-semibold text-slate-900">{conditionState.label}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700/70">
+                    Future Sensor Monitoring
+                  </p>
+
+                  <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                    Sensor belum tersedia
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+                  {futureSensorCards.map((card) => (
+                    <SensorCard
+                      key={card.title}
+                      title={card.title}
+                      value="--"
+                      description={card.description}
+                      icon={card.icon}
+                      variant="placeholder"
+                    />
+                  ))}
+                </div>
+              </section>
+
+              <section className="space-y-4 rounded-4xl border border-emerald-100 bg-white/90 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] backdrop-blur-sm sm:p-8 lg:p-10">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700/70">
+                      History sensor
+                    </p>
+
+                    <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">
+                      Riwayat pembacaan terbaru
+                    </h3>
+                  </div>
+
+                  <p className="text-sm text-slate-500">
+                    Menampilkan {Math.min(historyReadings.length, 5)} data terakhir.
+                  </p>
+                </div>
+
+                {historyReadings.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-4">
+                    {historyReadings.slice(0, 5).map((reading) => {
+                      const readingConditionState = getConditionState(reading.kondisi);
+                      const readingPumpState = getPumpState(reading.pompa);
+
+                      return (
+                        <div
+                          key={`${reading.created_at}-${reading.adc}`}
+                          className="flex flex-col gap-4 rounded-3xl border border-slate-200/80 bg-slate-50/80 px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-semibold text-slate-900">
+                                {formatTimestamp(reading.created_at)}
+                              </span>
+
+                              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${readingConditionState.badgeClass}`}>
+                                <span className={`h-2 w-2 rounded-full ${readingConditionState.dot}`} />
+                                {reading.kondisi}
+                              </span>
+
+                              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${readingPumpState.badgeClass}`}>
+                                <span className={`h-2 w-2 rounded-full ${readingPumpState.dot}`} />
+                                Pompa {reading.pompa}
+                              </span>
+                            </div>
+
+                            <p className="text-sm text-slate-500">
+                              ADC {reading.adc} • Kelembapan {reading.kelembapan}%
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-sm font-medium text-slate-600">
+                            <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                              {reading.kelembapan}%
+                            </span>
+                            <span className="rounded-full bg-white px-3 py-1 shadow-sm">
+                              ADC {reading.adc}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rounded-[28px] border border-dashed border-emerald-200 bg-emerald-50/60 p-8 text-center text-slate-600">
+                    <p className="text-lg font-semibold text-slate-900">
+                      Belum ada riwayat pembacaan
+                    </p>
+
+                    <p className="mx-auto mt-2 max-w-xl text-sm leading-6">
+                      Riwayat akan muncul setelah backend menerima payload sensor terbaru.
+                    </p>
+                  </div>
+                )}
+              </section>
             </div>
           )}
         </section>
@@ -220,9 +369,11 @@ export function SensorDashboard({
 }
 
 function formatTimestamp(timestamp: string) {
-  const date = new Date(
-    timestamp.endsWith("Z") ? timestamp : `${timestamp}Z`
-  );
+  const normalizedTimestamp = /(?:Z|[+-]\d\d:?\d\d)$/i.test(timestamp)
+    ? timestamp
+    : `${timestamp}Z`;
+
+  const date = new Date(normalizedTimestamp);
 
   if (Number.isNaN(date.getTime())) {
     return timestamp;
@@ -248,7 +399,93 @@ function formatTimestamp(timestamp: string) {
   const hour = getPart("hour").padStart(2, "0");
   const minute = getPart("minute").padStart(2, "0");
 
-  return `${day} ${month} ${year}, ${hour}.${minute}`;
+  return `${day} ${month} ${year}, ${hour}:${minute}`;
+}
+
+function getConditionState(condition?: string) {
+  const normalizedCondition = condition?.trim().toUpperCase();
+
+  if (normalizedCondition === "KERING") {
+    return {
+      label: "Kering",
+      dot: "bg-rose-500",
+      badgeClass: "bg-rose-50 text-rose-700",
+      cardClass: "border-rose-100 from-rose-50 via-white to-orange-50",
+      iconBg: "bg-rose-100 text-rose-700",
+    };
+  }
+
+  if (normalizedCondition === "LEMBAB") {
+    return {
+      label: "Lembab",
+      dot: "bg-amber-500",
+      badgeClass: "bg-amber-50 text-amber-700",
+      cardClass: "border-amber-100 from-amber-50 via-white to-emerald-50",
+      iconBg: "bg-amber-100 text-amber-700",
+    };
+  }
+
+  if (normalizedCondition === "BASAH") {
+    return {
+      label: "Basah",
+      dot: "bg-emerald-500",
+      badgeClass: "bg-emerald-50 text-emerald-700",
+      cardClass: "border-emerald-100 from-emerald-50 via-white to-cyan-50",
+      iconBg: "bg-emerald-100 text-emerald-700",
+    };
+  }
+
+  return {
+    label: normalizedCondition ?? "Tidak diketahui",
+    dot: "bg-slate-400",
+    badgeClass: "bg-slate-100 text-slate-600",
+    cardClass: "border-slate-100 from-slate-50 via-white to-emerald-50",
+    iconBg: "bg-slate-100 text-slate-600",
+  };
+}
+
+function getPumpState(pump?: string) {
+  const normalizedPump = pump?.trim().toUpperCase();
+
+  if (normalizedPump === "ON") {
+    return {
+      label: "ON",
+      dot: "bg-emerald-500",
+      badgeClass: "bg-emerald-50 text-emerald-700",
+    };
+  }
+
+  if (normalizedPump === "OFF") {
+    return {
+      label: "OFF",
+      dot: "bg-slate-400",
+      badgeClass: "bg-slate-100 text-slate-600",
+    };
+  }
+
+  return {
+    label: normalizedPump ?? "--",
+    dot: "bg-slate-400",
+    badgeClass: "bg-slate-100 text-slate-600",
+  };
+}
+
+function getConditionDescription(condition?: string) {
+  const normalizedCondition = condition?.trim().toUpperCase();
+
+  if (normalizedCondition === "KERING") {
+    return "Kondisi tanah kering. Pompa aktif untuk menjaga kelembapan tetap sesuai kebutuhan tanaman.";
+  }
+
+  if (normalizedCondition === "LEMBAB") {
+    return "Kondisi tanah lembab. Sistem berada pada zona aman untuk pertumbuhan tanaman.";
+  }
+
+  if (normalizedCondition === "BASAH") {
+    return "Kondisi tanah basah. Pompa dapat tetap nonaktif agar media tidak berlebihan air.";
+  }
+
+  return "Kondisi tanah belum dikenali dari payload sensor terbaru.";
 }
 
 function RefreshIcon() {
@@ -309,19 +546,5 @@ function NutriIcon() {
         strokeWidth="1.5"
       />
     </svg>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="rounded-[28px] border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="h-3 w-28 rounded-full bg-emerald-100/80" />
-        <div className="h-11 w-11 rounded-2xl bg-emerald-100/80" />
-      </div>
-
-      <div className="mt-5 h-10 w-24 rounded-full bg-slate-100" />
-      <div className="mt-4 h-4 w-4/5 rounded-full bg-slate-100" />
-    </div>
   );
 }

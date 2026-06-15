@@ -1,8 +1,11 @@
-export interface SensorPayload {
-  device_id: string;
-  soil_moisture: number;
-  soil_ph: number;
-  soil_n: number;
-  soil_p: number;
-  soil_k: number;
+export interface SoilMoisturePayload {
+  adc: number;
+  kelembapan: number;
+  kondisi: string;
+  pompa: string;
+}
+
+export interface SoilMoistureReading extends SoilMoisturePayload {
+  id?: number;
+  created_at: string;
 }

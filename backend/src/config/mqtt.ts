@@ -1,7 +1,7 @@
 import mqtt from "mqtt";
 import dotenv from "dotenv";
 import { supabase } from "./supabase";
-import { SensorPayload } from "../types/sensor";
+import { SoilMoisturePayload } from "../types/sensor";
 
 dotenv.config();
 
@@ -28,46 +28,41 @@ client.on("message", async (topic, message) => {
   try {
     console.log("Message received");
 
-    const payload: SensorPayload = JSON.parse(
-        message.toString()
-    );
+    const payload: unknown = JSON.parse(message.toString());
 
-    console.log(payload);
+    const isValidPayload = (
+      value: unknown
+    ): value is SoilMoisturePayload => {
+      if (!value || typeof value !== "object") {
+        return false;
+      }
 
-    if (!payload.device_id) {
-        console.log(
-            "Invalid payload: missing device_id"
-        );
-        return;
-    }
+      const data = value as Record<string, unknown>;
 
-    // Cari device berdasarkan device_code
-    const { data: device, error: deviceError } =
-      await supabase
-        .from("devices")
-        .select("id")
-        .eq("device_code", payload.device_id)
-        .single();
-
-    if (deviceError || !device) {
-      console.log(
-        "Device not found:",
-        payload.device_id
+      return (
+        typeof data.adc === "number" &&
+        typeof data.kelembapan === "number" &&
+        typeof data.kondisi === "string" &&
+        typeof data.pompa === "string"
       );
+    };
+
+    if (!isValidPayload(payload)) {
+      console.log("Invalid payload: missing or invalid fields");
       return;
     }
 
+    console.log(payload);
+
     // Insert sensor reading
     const { error: insertError } = await supabase
-      .from("sensor_readings")
+      .from("soil_moisture_readings")
       .insert([
         {
-          device_id: device.id,
-          soil_moisture: payload.soil_moisture,
-          soil_ph: payload.soil_ph,
-          soil_n: payload.soil_n,
-          soil_p: payload.soil_p,
-          soil_k: payload.soil_k,
+          adc: payload.adc,
+          kelembapan: payload.kelembapan,
+          kondisi: payload.kondisi,
+          pompa: payload.pompa,
         },
       ]);
 
